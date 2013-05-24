@@ -7,148 +7,162 @@
 MemoryMngr* memoryMngr = initMemoryMngr();
 #endif
 
-void atExit(){
-    memoryMngr->printStats();
-    std::cout << memoryMngr->getCount() << std::endl;
-    std::cout << std::endl;
+MemoryMngr* initMemoryMngr(){
+    MemoryMngr* memoryMngr= (MemoryMngr*)malloc(sizeof(MemoryMngr));
+    memoryMngr->init();
+    atexit(atExit);
+    return memoryMngr;
 }
 
-MemoryMngr* initMemoryMngr(){
-     MemoryMngr* memoryMngr= (MemoryMngr*)malloc(sizeof(MemoryMngr));
-     memoryMngr->init();
-     atexit(atExit);
-     return memoryMngr;
+// ### print utils ###
+void printSeparator(int length = 40){
+    std::cout.fill('-');
+    std::cout.width(length);
+    std::cout << "" << std::endl;
+}
+
+// ### at exit ###
+
+void atExit(){
+    printSeparator();
+    std::cout << "Memory Statistics" << std::endl;
+    printSeparator();
+    std::cout << "\n";
+    memoryMngr->printStats();
 }
 
 // ### MemoryManager ###
 
 void MemoryMngr::init() {
-    count = 0;
-    created = 0;
-    deleted = 0;
+    created = (memoryInfoList*)malloc(sizeof(memoryInfoList));
+    deleted = (memoryInfoList*)malloc(sizeof(memoryInfoList));
 }
 
-void MemoryMngr::addCreated(const char* name, void* address, unsigned long size) {
-    memoryInfo* info = (memoryInfo*)malloc(sizeof(memoryInfo));
-    info->number = ++count;
-    info->name = name;
-    info->address = address;
-    info->size=size;
-    info->next = 0;
-    info->previous = created;
-    if(created != 0){
-        created->next = info;
-    }
-    created = info;
+void MemoryMngr::addCreated(const char* name, bool array, void* address, unsigned long size) {
+    created->add(true, array,address, size);
 }
 
-void MemoryMngr::addDeleted(const char* name, void* address){
-    memoryInfo* info = (memoryInfo*)malloc(sizeof(memoryInfo));
-    info->name = name;
-    info->address = address;
-    info->previous = deleted;
-    info->next = 0;
-    if(deleted != 0){
-        deleted->next = info;
-    }
-    deleted = info;
-}
-
-void MemoryMngr::incrementCount(){
-    //count++;
-}
-
-void MemoryMngr::decrementCount(){
-    //count--;
-}
-
-int MemoryMngr::getCount(){
-    return count;
+void MemoryMngr::addDeleted(const char* name, bool array, void* address, unsigned long size){
+    created->add(false, array,address, size);
 }
 
 void MemoryMngr::printStats(){
-    memoryInfo* createdInfo = created;
-    // revert the list
-    while (createdInfo != 0 && createdInfo->previous != 0) {
-        createdInfo = createdInfo->previous;
-    }
+    unsigned long maxUsedMemory = 0;
     // print all created
-    std::printf("    %-10s %-10s %-10s \n","operator", "size", "address");
-    while (createdInfo != 0) {
-        std::printf("#%-2d %-10s %-10lu %-10p \n", createdInfo->number,createdInfo->name,createdInfo->size, createdInfo->address);
-        memoryInfo* old = createdInfo;
-        createdInfo = createdInfo->next;
-        free(old);
+    memoryInfo* memInfo = created->first;
+    unsigned long currentAllocationSize = 0;
+    //    memoryInfo* otherMemoryInfo = created->first;
+    std::printf("#  %-10s %-10s %-12s %10s \n","operator", "size", "address", "memory");
+    printSeparator();
+    while (memInfo != 0) {
+        std::string operatorName = (std::string)(memInfo->isAllocation ? "new" : "delete") + (std::string)(memInfo->isArray ? "[]" : "");
+        if(!memInfo->isAllocation) {
+            memoryInfo* allocation = created->first;
+            int index = -1;
+            bool wrongDelete = false;
+            while (allocation != 0 && index < 0) {
+                if(allocation->isAllocation && allocation->address == memInfo->address){
+                    index = allocation->number;
+                    wrongDelete = allocation->isArray != memInfo->isArray;
+                    allocation->isDeallocated = true;
+                } else {
+                    allocation = allocation->next;
+                }
+            }
+            if(index > -1){ // should always be the case
+                currentAllocationSize -= allocation->size;
+                std::printf("%-2d %-19s %-10p %10lu", index,operatorName.c_str(), memInfo->address, currentAllocationSize);
+                if(wrongDelete){
+                    std::cout << " *** wrong delete ***";
+                }
+                created->remove(allocation);
+            } else {
+                std::cout << "not found";
+            }
+        } else {
+            currentAllocationSize += memInfo->size;
+            std::printf("%-2d %-10s %8lu %10p %10lu", memInfo->number,operatorName.c_str(),memInfo->size, memInfo->address, currentAllocationSize);
+        }
+        if(currentAllocationSize > maxUsedMemory){
+            maxUsedMemory = currentAllocationSize;
+        }
+        std::cout << std::endl;
+        memoryInfo* old = memInfo;
+        memInfo = memInfo->next;
+        if(!old->isAllocation){
+            created->remove(old);
+        }
     }
     
-    memoryInfo* leaks = (memoryInfo*)malloc(sizeof(memoryInfo));
+    std::printf("\nMemory Leaks\n");
+    printSeparator();
+    unsigned long leakSize = 0;
+    int numberOfLeaks =0;
+    memInfo = created->first;
+    while (memInfo != 0) {
+        std::string operatorName = (std::string)(memInfo->isAllocation ? "new" : "delete") + (std::string)(memInfo->isArray ? "[]" : "");
+        std::printf("%-2d %-10s %8lu %10p \n", memInfo->number,operatorName.c_str(),memInfo->size, memInfo->address);
+        
+        numberOfLeaks++;
+        leakSize += memInfo->size;
+        
+        memoryInfo* old = memInfo;
+        memInfo = memInfo->next;
+        created->remove(old);
+        
+    }
     
-    memoryInfo* deletedInfo = deleted;
-    // revert the list
-    while (deletedInfo != 0 && deletedInfo->previous != 0) {
-        deletedInfo = deletedInfo->previous;
-    }
-    // print all created
-    std::printf("    %-10s %-10s %-10s \n","operator", "size", "address");
-    while (deletedInfo != 0) {
-        std::printf("#%-2d %-20s %-10p \n", deletedInfo->number,deletedInfo->name, deletedInfo->address);
-        memoryInfo* old = deletedInfo;
-        deletedInfo = deletedInfo->next;
-        free(old);
-    }
+    std::printf("\nMemory Usage\n");
+    printSeparator();
+    std::printf("%-20s %d\n", "No. of leaks:", numberOfLeaks);
+    std::printf("%-20s %lu\n", "Max used memory:", maxUsedMemory);
+    std::printf("%-20s %lu\n", "Leaked memory:", leakSize);
 }
 
 // ### Override new ###
 
 void* operator new(size_t size) throw(std::bad_alloc){
-    memoryMngr->incrementCount();
     void* p = malloc(size);
     if (!p) throw std::bad_alloc();
-    memoryMngr->addCreated("new", p, size);
+    memoryMngr->addCreated("new", false, p, size);
     return p;
 }
 
 void* operator new(size_t size, const std::nothrow_t& nothrow_value) noexcept {
-    memoryMngr->incrementCount();
     void* p = malloc(size);
-    memoryMngr->addCreated("new", p, size);
+    memoryMngr->addCreated("new", false, p, size);
     return p;
 }
 
 void* operator new[](size_t size) throw(std::bad_alloc){
-    memoryMngr->incrementCount();
     void* p = malloc(size);
     if (!p) throw std::bad_alloc();
-    memoryMngr->addCreated("new[]", p, size);
+    memoryMngr->addCreated("new[]", true, p, size);
     return p;
 }
 void* operator new[](size_t size, const std::nothrow_t& nothrow_value) noexcept {
-    memoryMngr->incrementCount();
     void* p = malloc(size);
-    memoryMngr->addCreated("new[]", p, size);
+    memoryMngr->addCreated("new[]", true, p, size);
     return p;
 }
 
 // ### Override delete ###
 
 void operator delete(void *p) throw(){
-    memoryMngr->decrementCount();
-    memoryMngr->addDeleted("delete", p);
+    memoryMngr->addDeleted("delete", false,p, sizeof(&p));
     free(p);
 }
 void operator delete(void *p, const std::nothrow_t& nothrow_value){
-    memoryMngr->decrementCount();
-    memoryMngr->addDeleted("delete", p);
+    memoryMngr->addDeleted("delete", false, p, sizeof(&p));
     free(p);
 }
 void operator delete[](void *p) throw(){
-    memoryMngr->decrementCount();
-    memoryMngr->addDeleted("delete[]", p);
+    memoryMngr->addDeleted("delete[]", true, p, sizeof(&p));
     free(p);
 }
 
 void operator delete[](void *p, const std::nothrow_t& nothrow_value){
-    memoryMngr->decrementCount();
-    memoryMngr->addDeleted("delete[]", p);
+    memoryMngr->addDeleted("delete[]", true, p, sizeof(&p));
     free(p);
 }
+

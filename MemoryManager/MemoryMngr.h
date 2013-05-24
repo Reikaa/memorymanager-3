@@ -1,10 +1,13 @@
 #ifndef MEMORYMNGR_H
 #define MEMORYMNGR_H
 
+
 struct memoryInfo
 {
     int number;
-    const char* name;
+    bool isAllocation = false;
+    bool isArray = false;
+    bool isDeallocated = false;
     void* address;
     unsigned long size;
     memoryInfo* previous = 0;
@@ -13,53 +16,58 @@ struct memoryInfo
 
 struct memoryInfoList
 {
-    int count = 0;
-    memoryInfo* list = 0;
-    void add(const char* name, void* address, unsigned long size) {
+    int size = 0;
+    int index = 0;
+    memoryInfo* first = 0;
+    memoryInfo* last = 0;
+    void add(bool isAllocation, bool array, void* address, unsigned long size) {
         memoryInfo* info = (memoryInfo*)malloc(sizeof(memoryInfo));
-        info->number = ++count;
-        info->name = name;
+        info->number = ++index;
+        info->isAllocation = isAllocation;
+        info->isArray = array;
         info->address = address;
         info->size=size;
         info->next = 0;
-        info->previous = list;
-        if(list != 0){
-            list->next = info;
+        info->previous = last;
+        if(last != 0){
+            last->next = info;
+        } else {
+            first = info;
         }
-        list = info;
+        last = info;
+        size++;
     }
-    void revert(){
-        memoryInfo* element = list;
-        // revert the list
-        while (element != 0 && element->previous != 0) {
-            element = element->previous;
+    void remove(memoryInfo* element){
+        if(element->previous == 0 && element->next == 0){
+            first = last = 0;
+        } else if(element->previous == 0){
+            first = element->next;
+            element->next->previous = 0;
+        } else if(element->next == 0){
+            last = element->previous;
+            element->previous->next = 0;
+        } else {
+            element->previous->next = element->next;
+            element->next->previous = element->previous;
         }
+        free(element);
+        size--;
     }
 };
 
 
-
-class MemoryMngr{
+class MemoryMngr {
 private:
-    int count;
-    memoryInfo* created;
-    memoryInfo* deleted;
+    memoryInfoList* created;
+    memoryInfoList* deleted;
 public:
-    int getCount();
     void init(void);
-    void incrementCount();
-    void decrementCount();
     void printStats();
-    void addCreated(const char* name, void* address, unsigned long size);
-    void addDeleted(const char* name, void* address);
+    void addCreated(const char* name, bool array, void* address, unsigned long size);
+    void addDeleted(const char* name, bool array, void* address, unsigned long size);
 };
 
 void atExit();
 MemoryMngr* initMemoryMngr();
-
-//void* operator new(size_t size) throw (std::bad_alloc);
-//void* operator new(size_t size, const std::nothrow_t& nothrow_value) noexcept;
-//void* operator new[](size_t size) throw (std::bad_alloc);
-//void* operator new[](size_t size, const std::nothrow_t& nothrow_value) noexcept;
 
 #endif // MEMORYMNGR_H

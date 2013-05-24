@@ -3,6 +3,11 @@
 #include <string>
 #include <stdlib.h>
 
+//const char* __file__ = "unknown";
+//size_t __line__ = 0;
+//
+//#define new (__file__=__FILE__,__line__=__LINE__) && 0 ? NULL : new
+
 using namespace std;
 class A
 {  public:
@@ -34,5 +39,7 @@ int main() {
     delete [] pA2;
     delete pS1;
     //delete [] pS2;
+    
+//    std::cout << __file__ << ":" << __line__;
     return 0;
 }
