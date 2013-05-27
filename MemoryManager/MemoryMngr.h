@@ -1,6 +1,6 @@
 #ifndef MEMORYMNGR_H
 #define MEMORYMNGR_H
-
+#include "Header.h"
 
 struct memoryInfo
 {
@@ -8,6 +8,8 @@ struct memoryInfo
     bool isAllocation = false;
     bool isArray = false;
     bool isDeallocated = false;
+    const char* file;
+    size_t line ;
     void* address;
     unsigned long size;
     memoryInfo* previous = 0;
@@ -20,7 +22,7 @@ struct memoryInfoList
     int index = 0;
     memoryInfo* first = 0;
     memoryInfo* last = 0;
-    void add(bool isAllocation, bool array, void* address, unsigned long size) {
+    void add(bool isAllocation, bool array, void* address, unsigned long size, const char* file,size_t line) {
         memoryInfo* info = (memoryInfo*)malloc(sizeof(memoryInfo));
         info->number = ++index;
         info->isAllocation = isAllocation;
@@ -28,6 +30,8 @@ struct memoryInfoList
         info->address = address;
         info->size=size;
         info->next = 0;
+        info->file = file;
+        info->line = line;
         info->previous = last;
         if(last != 0){
             last->next = info;

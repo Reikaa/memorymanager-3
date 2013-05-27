@@ -2,6 +2,11 @@
 #include <new>
 #include <iostream>
 #include "MemoryMngr.h"
+#include "Header.h"
+
+//const char* __file__;
+//size_t __line__ ;
+
 
 #if defined(DEBUG) || defined(_DEBUG) || defined(__debug)
 MemoryMngr* memoryMngr = initMemoryMngr();
@@ -39,11 +44,11 @@ void MemoryMngr::init() {
 }
 
 void MemoryMngr::addCreated(const char* name, bool array, void* address, unsigned long size) {
-    created->add(true, array,address, size);
+    created->add(true, array,address, size, __file__, __line__);
 }
 
 void MemoryMngr::addDeleted(const char* name, bool array, void* address, unsigned long size){
-    created->add(false, array,address, size);
+    created->add(false, array,address, size, __file__, __line__);
 }
 
 void MemoryMngr::printStats(){
@@ -71,7 +76,7 @@ void MemoryMngr::printStats(){
             }
             if(index > -1){ // should always be the case
                 currentAllocationSize -= allocation->size;
-                std::printf("%-2d %-19s %-10p %10lu", index,operatorName.c_str(), memInfo->address, currentAllocationSize);
+                std::printf("%-2d %-19s %-10p %10lu", index,operatorName.c_str(), memInfo->address, currentAllocationSize );
                 if(wrongDelete){
                     std::cout << " *** wrong delete ***";
                 }
@@ -81,7 +86,7 @@ void MemoryMngr::printStats(){
             }
         } else {
             currentAllocationSize += memInfo->size;
-            std::printf("%-2d %-10s %8lu %10p %10lu", memInfo->number,operatorName.c_str(),memInfo->size, memInfo->address, currentAllocationSize);
+            std::printf("%-2d %-10s %8lu %10p %10lu %10s:%zu", memInfo->number,operatorName.c_str(),memInfo->size, memInfo->address, currentAllocationSize, memInfo->file, memInfo->line);
         }
         if(currentAllocationSize > maxUsedMemory){
             maxUsedMemory = currentAllocationSize;
