@@ -2,13 +2,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#include "Header.h"
-//#include "global.cpp"
-const char* __file__ = "unknown";
-size_t __line__ = 0;
-
-#define new (__file__=__FILE__,__line__=__LINE__) & 0 ? NULL : new
-//#define delete (__file__=__FILE__,__line__=__LINE__) & 0 ? NULL : delete
+#include "Lines.h"
 
 using namespace std;
 class A
@@ -41,8 +35,6 @@ int main() {
     delete [] pA2;
     delete pS1;
     //delete [] pS2;
-    
-    std::cout << __file__ << ":" << __line__;
 
     return 0;
 }
