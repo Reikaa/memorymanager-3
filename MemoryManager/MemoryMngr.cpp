@@ -4,6 +4,10 @@
 #include "MemoryMngr.h"
 #include "Header.h"
 
+#if defined(DEBUG) || defined(_DEBUG) || defined(__debug)
+MemoryMngr* memoryMngr = initMemoryMngr();
+#endif
+
 MemoryMngr* initMemoryMngr(){
     MemoryMngr* memoryMngr= (MemoryMngr*)malloc(sizeof(MemoryMngr));
     memoryMngr->init();
@@ -19,7 +23,6 @@ void printSeparator(int length = 70){
 }
 
 // ### at exit ###
-
 void atExit(){
     printSeparator();
     std::cout << "Memory Statistics" << std::endl;
@@ -32,15 +35,11 @@ void atExit(){
 
 void MemoryMngr::init() {
     created = (memoryInfoList*)malloc(sizeof(memoryInfoList));
-    deleted = (memoryInfoList*)malloc(sizeof(memoryInfoList));
+    //deleted = (memoryInfoList*)malloc(sizeof(memoryInfoList));
 }
 
-void MemoryMngr::addCreated(const char* name, bool array, void* address, unsigned long size) {
-    created->add(true, array,address, size, __file__, __line__);
-}
-
-void MemoryMngr::addDeleted(const char* name, bool array, void* address, unsigned long size){
-    created->add(false, array,address, size, __file__, __line__);
+void MemoryMngr::addMemoryInfo(const char* name,bool allocation, bool array, void* address, unsigned long size) {
+    created->add(allocation, array,address, size, __file__, __line__);
 }
 
 void MemoryMngr::printStats(){
@@ -114,5 +113,52 @@ void MemoryMngr::printStats(){
     std::printf("%-20s %d\n", "No. of leaks:", numberOfLeaks);
     std::printf("%-20s %lu\n", "Max used memory:", maxUsedMemory);
     std::printf("%-20s %lu\n", "Leaked memory:", leakSize);
+}
+
+// ### Override new ###
+
+void* operator new(size_t size) throw(std::bad_alloc){
+    void* p = malloc(size);
+    if (!p) throw std::bad_alloc();
+    memoryMngr->addMemoryInfo("new", true,false, p, size);
+    return p;
+}
+
+void* operator new(size_t size, const std::nothrow_t& nothrow_value) noexcept {
+    void* p = malloc(size);
+    memoryMngr->addMemoryInfo("new", true,false, p, size);
+    return p;
+}
+
+void* operator new[](size_t size) throw(std::bad_alloc){
+    void* p = malloc(size);
+    if (!p) throw std::bad_alloc();
+    memoryMngr->addMemoryInfo("new[]", true,true, p, size);
+    return p;
+}
+void* operator new[](size_t size, const std::nothrow_t& nothrow_value) noexcept {
+    void* p = malloc(size);
+    memoryMngr->addMemoryInfo("new[]", true,true, p, size);
+    return p;
+}
+
+// ### Override delete ###
+
+void operator delete(void *p) throw(){
+    memoryMngr->addMemoryInfo("delete",false , false,p, sizeof(&p));
+    free(p);
+}
+void operator delete(void *p, const std::nothrow_t& nothrow_value){
+    memoryMngr->addMemoryInfo("delete", false, false, p, sizeof(&p));
+    free(p);
+}
+void operator delete[](void *p) throw(){
+    memoryMngr->addMemoryInfo("delete[]", false, true, p, sizeof(&p));
+    free(p);
+}
+
+void operator delete[](void *p, const std::nothrow_t& nothrow_value){
+    memoryMngr->addMemoryInfo("delete[]", false, true, p, sizeof(&p));
+    free(p);
 }
 

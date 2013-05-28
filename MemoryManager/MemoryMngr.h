@@ -66,64 +66,10 @@ private:
 public:
     void init(void);
     void printStats();
-    void addCreated(const char* name, bool array, void* address, unsigned long size);
-    void addDeleted(const char* name, bool array, void* address, unsigned long size);
+    void addMemoryInfo(const char* name,bool allocation, bool array, void* address, unsigned long size);
 };
 
 void atExit();
 MemoryMngr* initMemoryMngr();
-//MemoryMngr* memoryMngr;
-
-#if defined(DEBUG) || defined(_DEBUG) || defined(__debug)
-MemoryMngr* memoryMngr = initMemoryMngr();
-#endif
-
-// ### Override new ###
-
-void* operator new(size_t size) throw(std::bad_alloc){
-    void* p = malloc(size);
-    if (!p) throw std::bad_alloc();
-    memoryMngr->addCreated("new", false, p, size);
-    return p;
-}
-
-void* operator new(size_t size, const std::nothrow_t& nothrow_value) noexcept {
-    void* p = malloc(size);
-    memoryMngr->addCreated("new", false, p, size);
-    return p;
-}
-
-void* operator new[](size_t size) throw(std::bad_alloc){
-    void* p = malloc(size);
-    if (!p) throw std::bad_alloc();
-    memoryMngr->addCreated("new[]", true, p, size);
-    return p;
-}
-void* operator new[](size_t size, const std::nothrow_t& nothrow_value) noexcept {
-    void* p = malloc(size);
-    memoryMngr->addCreated("new[]", true, p, size);
-    return p;
-}
-
-// ### Override delete ###
-
-void operator delete(void *p) throw(){
-    memoryMngr->addDeleted("delete", false,p, sizeof(&p));
-    free(p);
-}
-void operator delete(void *p, const std::nothrow_t& nothrow_value){
-    memoryMngr->addDeleted("delete", false, p, sizeof(&p));
-    free(p);
-}
-void operator delete[](void *p) throw(){
-    memoryMngr->addDeleted("delete[]", true, p, sizeof(&p));
-    free(p);
-}
-
-void operator delete[](void *p, const std::nothrow_t& nothrow_value){
-    memoryMngr->addDeleted("delete[]", true, p, sizeof(&p));
-    free(p);
-}
-
 
 #endif // MEMORYMNGR_H
