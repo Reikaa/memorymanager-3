@@ -2,7 +2,8 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#include "Lines.h"
+// this include is needed to get line information.
+#include "LineInfo.h"
 
 using namespace std;
 class A
@@ -35,6 +36,6 @@ int main() {
     delete [] pA2;
     delete pS1;
     //delete [] pS2;
-
+    
     return 0;
 }
