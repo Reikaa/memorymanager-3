@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <new>
 #include <iostream>
-#include "wyssr11_MemMngr.h"
+#include "MemMngr.h"
 
 #undef new
 #undef delete

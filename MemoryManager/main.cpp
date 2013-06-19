@@ -3,7 +3,7 @@
 #include <string>
 #include <stdlib.h>
 // this include is needed to get line information.
-#include "wyssr11_MemMngr.h"
+#include "MemMngr.h"
 
 using namespace std;
 class A

@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00CC8527173A42BE0011F1DE /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00CC8524173A42BE0011F1DE /* main.cpp */; };
-		00CC8528173A42BE0011F1DE /* wyssr11_MemMngr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00CC8525173A42BE0011F1DE /* wyssr11_MemMngr.cpp */; };
+		00CC8528173A42BE0011F1DE /* MemMngr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00CC8525173A42BE0011F1DE /* MemMngr.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +26,8 @@
 /* Begin PBXFileReference section */
 		00CC8518173A42850011F1DE /* MemoryManager */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MemoryManager; sourceTree = BUILT_PRODUCTS_DIR; };
 		00CC8524173A42BE0011F1DE /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		00CC8525173A42BE0011F1DE /* wyssr11_MemMngr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wyssr11_MemMngr.cpp; sourceTree = "<group>"; };
-		00CC8526173A42BE0011F1DE /* wyssr11_MemMngr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wyssr11_MemMngr.h; sourceTree = "<group>"; };
+		00CC8525173A42BE0011F1DE /* MemMngr.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MemMngr.cpp; sourceTree = "<group>"; };
+		00CC8526173A42BE0011F1DE /* MemMngr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MemMngr.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,8 +61,8 @@
 			isa = PBXGroup;
 			children = (
 				00CC8524173A42BE0011F1DE /* main.cpp */,
-				00CC8525173A42BE0011F1DE /* wyssr11_MemMngr.cpp */,
-				00CC8526173A42BE0011F1DE /* wyssr11_MemMngr.h */,
+				00CC8525173A42BE0011F1DE /* MemMngr.cpp */,
+				00CC8526173A42BE0011F1DE /* MemMngr.h */,
 			);
 			path = MemoryManager;
 			sourceTree = "<group>";
@@ -119,7 +119,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00CC8527173A42BE0011F1DE /* main.cpp in Sources */,
-				00CC8528173A42BE0011F1DE /* wyssr11_MemMngr.cpp in Sources */,
+				00CC8528173A42BE0011F1DE /* MemMngr.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
