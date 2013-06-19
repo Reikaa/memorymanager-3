@@ -100,6 +100,7 @@ MemoryMngr* initMemoryMngr(){
 // ### at exit ###
 void atExit(){
     memoryMngr->printStats();
+    delete memoryMngr;
 }
 
 // ### MemoryManager ###
